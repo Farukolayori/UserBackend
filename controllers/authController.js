@@ -4,24 +4,19 @@ const Log = require('../models/Log');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// REGISTER
 const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, matricNumber, dateStarted } = req.body;
-
+    
     if (!firstName || !lastName || !email || !password || !matricNumber) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: 'All fields required' });
     }
 
-    const existing = await User.findOne({
+    const exists = await User.findOne({
       $or: [{ email: email.toLowerCase() }, { matricNumber: matricNumber.toUpperCase() }]
     });
-    if (existing) {
-      return res.status(400).json({ 
-        message: existing.email === email.toLowerCase() 
-          ? 'Email already exists' 
-          : 'Matric number already exists' 
-      });
-    }
+    if (exists) return res.status(400).json({ message: 'Email or Matric already exists' });
 
     const hashed = await bcrypt.hash(password, 10);
     const user = new User({
@@ -31,26 +26,20 @@ const register = async (req, res) => {
       password: hashed,
       matricNumber: matricNumber.toUpperCase(),
       dateStarted: dateStarted || new Date(),
-      department: 'Computer Science',
       role: 'student',
       status: 'active'
     });
 
     await user.save();
-
-    await new Log({
-      user: `${user.firstName} ${user.lastName}`,
-      action: 'Registered',
-      type: 'register'
-    }).save();
+    await new Log({ user: `${user.firstName} ${user.lastName}`, action: 'Registered', type: 'register' }).save();
 
     res.status(201).json({ message: 'Registration successful! Please login.' });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
+// LOGIN - EMAIL + PASSWORD ONLY
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -64,17 +53,9 @@ const login = async (req, res) => {
     user.lastActive = new Date();
     await user.save();
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    await new Log({
-      user: `${user.firstName} ${user.lastName}`,
-      action: 'Logged in',
-      type: 'login'
-    }).save();
+    await new Log({ user: `${user.firstName} ${user.lastName}`, action: 'Logged in', type: 'login' }).save();
 
     res.json({
       token,
@@ -87,17 +68,15 @@ const login = async (req, res) => {
         role: user.role,
         level: user.level || '100',
         cgpa: user.cgpa || '0.0',
-        status: user.status,
-        department: user.department
+        status: user.status
       }
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// THIS WAS MISSING OR BROKEN — NOW FIXED
+// THIS MUST BE HERE — getCurrentUser
 const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -112,15 +91,14 @@ const getCurrentUser = async (req, res) => {
       role: user.role,
       level: user.level || '100',
       cgpa: user.cgpa || '0.0',
-      status: user.status,
-      department: user.department || 'Computer Science'
+      status: user.status
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// THIS LINE WAS WRONG BEFORE — NOW 100% CORRECT
+// THIS LINE MUST BE EXACTLY LIKE THIS — NO EXTRA CODE AFTER
 module.exports = {
   register,
   login,
