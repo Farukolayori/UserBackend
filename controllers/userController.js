@@ -1,3 +1,4 @@
+// backend/controllers/userController.js
 const User = require('../models/User');
 const Log = require('../models/Log');
 
@@ -47,7 +48,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.exportCSV = async (req, res) => {
   try {
-    const users = await User.find().select('firstName lastName email matricNumber level cgpa status -_id');
+    const users = await User.find().select('firstName lastName email matricNumber level cgpa status');
     let csv = 'Name,Email,Matric Number,Level,CGPA,Status\n';
     users.forEach(u => {
       csv += `"${u.firstName} ${u.lastName}",${u.email},${u.matricNumber},${u.level || 'N/A'},${u.cgpa || '0.0'},${u.status}\n`;

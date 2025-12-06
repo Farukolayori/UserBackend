@@ -1,3 +1,4 @@
+// backend/routes/logs.js
 const express = require('express');
 const router = express.Router();
 const { auth, admin } = require('../middleware/auth');

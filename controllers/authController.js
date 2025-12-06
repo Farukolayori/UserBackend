@@ -1,9 +1,11 @@
+// backend/controllers/authController.js
 const User = require('../models/User');
 const Log = require('../models/Log');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-exports.register = async (req, res) => {
+// USE const + function name (this is the correct way)
+const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, matricNumber, dateStarted } = req.body;
 
@@ -29,7 +31,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   try {
     const { email, matricNumber, password } = req.body;
     const user = await User.findOne({ email, matricNumber: matricNumber.toUpperCase() });
@@ -44,31 +46,53 @@ exports.login = async (req, res) => {
 
     await new Log({ user: `${user.firstName} ${user.lastName}`, action: 'Logged in', type: 'login' }).save();
 
-    const userResponse = {
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        matricNumber: user.matricNumber,
+        role: user.role,
+        level: user.level || '100',
+        cgpa: user.cgpa || '0.0',
+        status: user.status || 'active',
+        department: user.department || 'Computer Science',
+        dateStarted: user.dateStarted
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({
       _id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       matricNumber: user.matricNumber,
       role: user.role,
-      level: user.level,
-      cgpa: user.cgpa,
-      status: user.status,
-      department: user.department,
+      level: user.level || '100',
+      cgpa: user.cgpa || '0.0',
+      status: user.status || 'active',
+      department: user.department || 'Computer Science',
       dateStarted: user.dateStarted
-    };
-
-    res.json({ token, user: userResponse });
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
-// Add to authController.js
-exports.getCurrentUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+
+// THIS IS THE ONLY CORRECT WAY
+module.exports = {
+  register,
+  login,
+  getCurrentUser
 };
