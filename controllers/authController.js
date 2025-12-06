@@ -4,11 +4,9 @@ const Log = require('../models/Log');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// REGISTER
 const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, matricNumber, dateStarted } = req.body;
-    
     if (!firstName || !lastName || !email || !password || !matricNumber) {
       return res.status(400).json({ message: 'All fields required' });
     }
@@ -20,8 +18,7 @@ const register = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const user = new User({
-      firstName,
-      lastName,
+      firstName, lastName,
       email: email.toLowerCase(),
       password: hashed,
       matricNumber: matricNumber.toUpperCase(),
@@ -32,14 +29,12 @@ const register = async (req, res) => {
 
     await user.save();
     await new Log({ user: `${user.firstName} ${user.lastName}`, action: 'Registered', type: 'register' }).save();
-
-    res.status(201).json({ message: 'Registration successful! Please login.' });
+    res.status(201).json({ message: 'Registration successful!' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// LOGIN - EMAIL + PASSWORD ONLY
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -47,7 +42,7 @@ const login = async (req, res) => {
 
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     user.lastActive = new Date();
@@ -65,10 +60,7 @@ const login = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         matricNumber: user.matricNumber,
-        role: user.role,
-        level: user.level || '100',
-        cgpa: user.cgpa || '0.0',
-        status: user.status
+        role: user.role
       }
     });
   } catch (err) {
@@ -76,31 +68,14 @@ const login = async (req, res) => {
   }
 };
 
-// THIS MUST BE HERE — getCurrentUser
 const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    res.json({
-      _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      matricNumber: user.matricNumber,
-      role: user.role,
-      level: user.level || '100',
-      cgpa: user.cgpa || '0.0',
-      status: user.status
-    });
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-// THIS LINE MUST BE EXACTLY LIKE THIS — NO EXTRA CODE AFTER
-module.exports = {
-  register,
-  login,
-  getCurrentUser
-};
+// THIS MUST BE THE VERY LAST LINE — NOTHING AFTER THIS
+module.exports = { register, login, getCurrentUser };
