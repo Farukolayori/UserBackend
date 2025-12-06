@@ -45,8 +45,8 @@ const createAdmin = async () => {
 
     await admin.save();
     console.log('SUCCESS: Admin created!');
-    console.log('Email: admin@cs.edu');
-    console.log('Password: admin123');
+    console.log('Email: pelumi@gmail.com');
+    console.log('Password: Olayori25');
     console.log('Login at your frontend and enjoy full admin access!');
   } catch (err) {
     console.error('Error creating admin:', err.message);
