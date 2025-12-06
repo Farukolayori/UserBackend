@@ -50,8 +50,6 @@ const login = async (req, res) => {
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    await new Log({ user: `${user.firstName} ${user.lastName}`, action: 'Logged in', type: 'login' }).save();
-
     res.json({
       token,
       user: {
@@ -77,5 +75,4 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
-// THIS MUST BE THE VERY LAST LINE — NOTHING AFTER THIS
 module.exports = { register, login, getCurrentUser };
