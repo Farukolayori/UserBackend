@@ -109,6 +109,7 @@ const login = async (req, res) => {
 };
 
 // Get current user (for auto-login)
+// Update getCurrentUser to return full user data
 const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -117,7 +118,20 @@ const getCurrentUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(user);
+    // Return full user object with all fields
+    res.json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      department: user.department,
+      role: user.role,
+      status: user.status,
+      level: user.level,
+      cgpa: user.cgpa,
+      lastActive: user.lastActive,
+      createdAt: user.createdAt
+    });
   } catch (err) {
     console.error('Get user error:', err);
     res.status(500).json({ message: 'Server error' });
