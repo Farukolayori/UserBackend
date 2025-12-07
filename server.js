@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -11,7 +10,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://portal2-psi.vercel.app/', // ADD YOUR FRONTEND URL
+  'https://portal2-psi.vercel.app/',
 ];
 
 app.use(cors({

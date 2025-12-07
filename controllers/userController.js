@@ -1,4 +1,3 @@
-// controllers/userController.js
 const User = require('../models/User');
 const Log = require('../models/Log');
 
@@ -9,20 +8,15 @@ const getAllUsers = async (req, res) => {
     
     const query = {};
 
-    // Search filter
     if (search) {
       query.$or = [
         { firstName: { $regex: search, $options: 'i' } },
         { lastName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { matricNumber: { $regex: search, $options: 'i' } }
+        { email: { $regex: search, $options: 'i' } }
       ];
     }
     
-    // Role filter
     if (role !== 'all') query.role = role;
-    
-    // Status filter
     if (status !== 'all') query.status = status;
 
     const users = await User.find(query).select('-password');
@@ -45,7 +39,6 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Log activity
     await new Log({
       user: `${user.firstName} ${user.lastName}`,
       action: 'Profile updated',
@@ -69,7 +62,6 @@ const deleteUser = async (req, res) => {
 
     await User.findByIdAndDelete(req.params.id);
     
-    // Log activity
     await new Log({
       user: `${user.firstName} ${user.lastName}`,
       action: 'Account deleted',
@@ -85,16 +77,16 @@ const deleteUser = async (req, res) => {
 // Export users as CSV
 const exportCSV = async (req, res) => {
   try {
-    const users = await User.find().select('firstName lastName email matricNumber level cgpa status');
+    const users = await User.find().select('firstName lastName email department level cgpa status lastActive');
     
-    let csv = 'Name,Email,Matric Number,Level,CGPA,Status\n';
+    let csv = 'Name,Email,Department,Level,CGPA,Status,Last Active\n';
     
     users.forEach(u => {
-      csv += `"${u.firstName} ${u.lastName}",${u.email},${u.matricNumber},${u.level || 'N/A'},${u.cgpa || '0.0'},${u.status}\n`;
+      csv += `"${u.firstName} ${u.lastName}",${u.email},${u.department || 'Computer Science'},${u.level || 'N/A'},${u.cgpa || '0.00'},${u.status},${new Date(u.lastActive).toLocaleDateString()}\n`;
     });
 
     res.header('Content-Type', 'text/csv');
-    res.attachment('cs_students.csv');
+    res.attachment('users.csv');
     res.send(csv);
   } catch (err) {
     res.status(500).json({ message: err.message });

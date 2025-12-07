@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -22,17 +21,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    select: false  // Don't include password by default
-  },
-  matricNumber: {
-    type: String,
-    required: true,
-    unique: true,
-    uppercase: true
-  },
-  dateStarted: {
-    type: Date,
-    default: Date.now
+    select: false
   },
   department: {
     type: String,
@@ -45,12 +34,12 @@ const userSchema = new mongoose.Schema({
   },
   level: {
     type: String,
-    enum: ['100', '200', '300', '400', '500'],
-    default: '100'
+    enum: ['100', '200', '300', '400', '500', null],
+    default: null
   },
   cgpa: {
     type: String,
-    default: '0.00'
+    default: null
   },
   status: {
     type: String,
@@ -66,12 +55,10 @@ const userSchema = new mongoose.Schema({
     default: null
   }
 }, {
-  timestamps: true  // Adds createdAt and updatedAt
+  timestamps: true
 });
 
-// Indexes for faster queries
 userSchema.index({ email: 1 });
-userSchema.index({ matricNumber: 1 });
 userSchema.index({ role: 1, status: 1 });
 
 module.exports = mongoose.model('User', userSchema);

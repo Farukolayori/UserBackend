@@ -1,4 +1,3 @@
-// routes/users.js
 const express = require('express');
 const router = express.Router();
 const { getAllUsers, updateUser, deleteUser, exportCSV } = require('../controllers/userController');

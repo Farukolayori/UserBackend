@@ -1,11 +1,10 @@
-// seedAdmin.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 require('dotenv').config();
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Connected for seeding'))
   .catch((err) => {
     console.error('❌ Connection failed:', err.message);
@@ -14,7 +13,6 @@ mongoose.connect(process.env.MONGO_URI)
 
 const createAdmin = async () => {
   try {
-    // Check if admin already exists
     const existingAdmin = await User.findOne({ email: 'pelumi@gmail.com' });
     
     if (existingAdmin) {
@@ -29,7 +27,6 @@ const createAdmin = async () => {
       process.exit(0);
     }
 
-    // Create new admin
     const hashedPassword = await bcrypt.hash('Olayori25', 10);
 
     const admin = new User({
@@ -37,8 +34,6 @@ const createAdmin = async () => {
       lastName: 'Ariyo',
       email: 'pelumi@gmail.com',
       password: hashedPassword,
-      matricNumber: 'ADMIN001',
-      dateStarted: new Date('2025-12-07'),
       department: 'Computer Science',
       role: 'admin',
       level: '500',
@@ -54,6 +49,7 @@ const createAdmin = async () => {
     console.log('🚀 Login at your frontend and enjoy admin access!');
   } catch (err) {
     console.error('❌ Error creating admin:', err.message);
+    console.error('Full error:', err);
   } finally {
     mongoose.connection.close();
     process.exit(0);
