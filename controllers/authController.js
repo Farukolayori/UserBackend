@@ -29,7 +29,8 @@ const register = async (req, res) => {
       status: 'active'
     });
 
-    await user.save();
+    const savedUser = await user.save();  // Add this line
+    console.log('✅ New user saved:', savedUser._id);  // Log success
 
     await new Log({
       user: `${user.firstName} ${user.lastName}`,
@@ -38,11 +39,16 @@ const register = async (req, res) => {
     }).save();
 
     res.status(201).json({ 
-      message: 'Registration successful!'
+      message: 'Registration successful!',
+      userId: savedUser._id  // Bonus: return ID
     });
   } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ message: 'Server error during registration' });
+    console.error('🚨 Register ERROR:', err);  // Better logging
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ 
+      message: 'Server error during registration',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined  // Show details in dev
+    });
   }
 };
 
