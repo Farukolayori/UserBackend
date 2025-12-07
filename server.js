@@ -10,16 +10,26 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://portal2-psi.vercel.app/',
+  'https://portal2-psi.vercel.app',  // Remove trailing slash
+  'https://portal2-psi.vercel.app/', // Keep this too
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS policy violation'), false);
+    
+    // For testing, allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    console.log('CORS blocked origin:', origin);
+    return callback(new Error('CORS policy violation'), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
