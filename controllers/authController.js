@@ -1,14 +1,14 @@
-// controllers/authController.js
+// controllers/authController.js - FIXED REGISTER FUNCTION
 const User = require('../models/User');
 const Log = require('../models/Log');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Register new user
 const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, dateStarted } = req.body;
     
+    // Validate required fields
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({ message: 'All fields required' });
     }
@@ -22,7 +22,7 @@ const register = async (req, res) => {
     // Hash password
     const hashed = await bcrypt.hash(password, 10);
     
-    // Generate matric number (format: CS/2025/0001)
+    // Generate matric number (format: CS/2025/XXXX)
     const year = new Date().getFullYear();
     const count = await User.countDocuments();
     const matricNumber = `CS/${year}/${String(count + 1).padStart(4, '0')}`;
@@ -42,12 +42,17 @@ const register = async (req, res) => {
 
     await user.save();
 
-    // Log activity
-    await new Log({
-      user: `${user.firstName} ${user.lastName}`,
-      action: 'Registered new account',
-      type: 'register'
-    }).save();
+    // Log activity - FIXED: Added error handling
+    try {
+      await new Log({
+        user: `${user.firstName} ${user.lastName}`,
+        action: 'Registered new account',
+        type: 'register'
+      }).save();
+    } catch (logError) {
+      console.log('Log creation failed:', logError.message);
+      // Continue even if log fails
+    }
 
     res.status(201).json({ 
       message: 'Registration successful!',
@@ -55,11 +60,13 @@ const register = async (req, res) => {
     });
   } catch (err) {
     console.error('Register error:', err);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ 
+      message: 'Server error during registration',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
-// Login user
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -85,12 +92,17 @@ const login = async (req, res) => {
     user.lastActive = new Date();
     await user.save();
 
-    // Log activity
-    await new Log({
-      user: `${user.firstName} ${user.lastName}`,
-      action: 'Logged in',
-      type: 'login'
-    }).save();
+    // Log activity - FIXED: Added error handling
+    try {
+      await new Log({
+        user: `${user.firstName} ${user.lastName}`,
+        action: 'Logged in',
+        type: 'login'
+      }).save();
+    } catch (logError) {
+      console.log('Log creation failed:', logError.message);
+      // Continue even if log fails
+    }
 
     // Generate JWT
     const token = jwt.sign(
@@ -117,11 +129,13 @@ const login = async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ 
+      message: 'Server error during login',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
-// Get current user (for auto-login)
 const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
