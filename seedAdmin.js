@@ -4,7 +4,7 @@ const User = require('./models/User');
 require('dotenv').config();
 
 // ADMIN CREDENTIALS - Change these if needed
-const ADMIN_EMAIL = 'pelumi@gmail.com';
+const ADMIN_EMAIL = 'diamond@gmail.com';
 const ADMIN_PASSWORD = 'Olayori25';
 const ADMIN_FIRST_NAME = 'Pelumi';
 const ADMIN_LAST_NAME = 'Ariyo';
