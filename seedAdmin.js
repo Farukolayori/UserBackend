@@ -3,13 +3,13 @@ const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 require('dotenv').config();
 
-// ADMIN CREDENTIALS - Change these if needed
+// ADMIN CREDENTIALS - Updated to match frontend
 const ADMIN_EMAIL = 'diamond@gmail.com';
 const ADMIN_PASSWORD = 'Olayori25';
 const ADMIN_FIRST_NAME = 'Pelumi';
 const ADMIN_LAST_NAME = 'Ariyo';
 
-// Connect to MongoDB with better error handling
+// Connect to MongoDB
 const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI;
@@ -19,7 +19,6 @@ const connectDB = async () => {
     }
 
     console.log('🔄 Connecting to MongoDB...');
-    console.log('📍 URI:', mongoURI.substring(0, 30) + '...');
     
     await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
@@ -38,7 +37,7 @@ const createAdmin = async () => {
   try {
     await connectDB();
 
-    // FIXED: Check for the correct email
+    // Check if admin already exists
     console.log(`🔍 Checking if admin exists: ${ADMIN_EMAIL}`);
     const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
     
@@ -49,9 +48,9 @@ const createAdmin = async () => {
       console.log('👤 Name:', existingAdmin.firstName, existingAdmin.lastName);
       console.log('🔐 Role:', existingAdmin.role);
       console.log('📊 Status:', existingAdmin.status);
-      console.log('🆔 User ID:', existingAdmin._id);
       console.log('═══════════════════════════════════');
       
+      // Ensure the user has admin role
       if (existingAdmin.role !== 'admin') {
         console.log('🔄 Upgrading user to admin...');
         existingAdmin.role = 'admin';
@@ -65,6 +64,7 @@ const createAdmin = async () => {
       console.log('\n🔑 Login Credentials:');
       console.log(`   Email: ${ADMIN_EMAIL}`);
       console.log(`   Password: ${ADMIN_PASSWORD}`);
+      console.log('\n🚀 You can now login as admin!');
       return;
     }
 
@@ -80,7 +80,7 @@ const createAdmin = async () => {
       email: ADMIN_EMAIL,
       password: hashedPassword,
       department: 'Computer Science',
-      role: 'admin',
+      role: 'admin', // IMPORTANT: Set role to 'admin'
       level: '500',
       cgpa: '5.0',
       status: 'active',
@@ -96,19 +96,18 @@ const createAdmin = async () => {
     console.log('🔑 Password:', ADMIN_PASSWORD);
     console.log('👤 Name:', ADMIN_FIRST_NAME, ADMIN_LAST_NAME);
     console.log('🔐 Role: admin');
-    console.log('🆔 User ID:', savedAdmin._id);
+    console.log('📊 Status: active');
     console.log('═══════════════════════════════════');
-    console.log('🚀 You can now login with these credentials!');
+    console.log('\n🚀 You can now login with these credentials!');
+    console.log('📍 Frontend will recognize this email as admin');
     
   } catch (err) {
     console.error('\n❌ Error creating admin:', err.message);
     
     if (err.code === 11000) {
       console.error('💡 Duplicate key error - Admin with this email already exists');
-      console.error('   Try deleting the existing user first or use a different email');
     } else {
       console.error('Full error:', err);
-      console.error('Stack trace:', err.stack);
     }
   } finally {
     await mongoose.connection.close();
