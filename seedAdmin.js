@@ -3,6 +3,12 @@ const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 require('dotenv').config();
 
+// ADMIN CREDENTIALS - Change these if needed
+const ADMIN_EMAIL = 'pelumi@gmail.com';
+const ADMIN_PASSWORD = 'Olayori25';
+const ADMIN_FIRST_NAME = 'Pelumi';
+const ADMIN_LAST_NAME = 'Ariyo';
+
 // Connect to MongoDB with better error handling
 const connectDB = async () => {
   try {
@@ -13,6 +19,7 @@ const connectDB = async () => {
     }
 
     console.log('🔄 Connecting to MongoDB...');
+    console.log('📍 URI:', mongoURI.substring(0, 30) + '...');
     
     await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
@@ -31,36 +38,46 @@ const createAdmin = async () => {
   try {
     await connectDB();
 
-    // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: 'ariyo@gmail.com' });
+    // FIXED: Check for the correct email
+    console.log(`🔍 Checking if admin exists: ${ADMIN_EMAIL}`);
+    const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
     
     if (existingAdmin) {
-      console.log('⚠️  Admin user already exists!');
+      console.log('\n⚠️  Admin user already exists!');
+      console.log('═══════════════════════════════════');
       console.log('📧 Email:', existingAdmin.email);
       console.log('👤 Name:', existingAdmin.firstName, existingAdmin.lastName);
       console.log('🔐 Role:', existingAdmin.role);
+      console.log('📊 Status:', existingAdmin.status);
+      console.log('🆔 User ID:', existingAdmin._id);
+      console.log('═══════════════════════════════════');
       
       if (existingAdmin.role !== 'admin') {
+        console.log('🔄 Upgrading user to admin...');
         existingAdmin.role = 'admin';
+        existingAdmin.status = 'active';
         await existingAdmin.save();
-        console.log('✅ Existing user upgraded to admin');
+        console.log('✅ User upgraded to admin successfully!');
       } else {
         console.log('✅ User is already an admin');
       }
       
-      console.log('\n🔑 Use password: Olayori25 to login');
+      console.log('\n🔑 Login Credentials:');
+      console.log(`   Email: ${ADMIN_EMAIL}`);
+      console.log(`   Password: ${ADMIN_PASSWORD}`);
       return;
     }
 
     // Create new admin
-    console.log('🔄 Creating new admin user...');
+    console.log('🔄 No existing admin found. Creating new admin user...');
     
-    const hashedPassword = await bcrypt.hash('Olayori25', 10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    console.log('🔐 Password hashed successfully');
 
     const admin = new User({
-      firstName: 'Pelumi',
-      lastName: 'Ariyo',
-      email: 'pelumi@gmail.com',
+      firstName: ADMIN_FIRST_NAME,
+      lastName: ADMIN_LAST_NAME,
+      email: ADMIN_EMAIL,
       password: hashedPassword,
       department: 'Computer Science',
       role: 'admin',
@@ -70,13 +87,15 @@ const createAdmin = async () => {
       lastActive: new Date()
     });
 
+    console.log('💾 Saving admin to database...');
     const savedAdmin = await admin.save();
     
-    console.log('\n✅ SUCCESS: Admin created!');
+    console.log('\n🎉 SUCCESS: Admin created!');
     console.log('═══════════════════════════════════');
-    console.log('📧 Email: pelumi@gmail.com');
-    console.log('🔑 Password: Olayori25');
-    console.log('👤 Role: admin');
+    console.log('📧 Email:', ADMIN_EMAIL);
+    console.log('🔑 Password:', ADMIN_PASSWORD);
+    console.log('👤 Name:', ADMIN_FIRST_NAME, ADMIN_LAST_NAME);
+    console.log('🔐 Role: admin');
     console.log('🆔 User ID:', savedAdmin._id);
     console.log('═══════════════════════════════════');
     console.log('🚀 You can now login with these credentials!');
@@ -86,8 +105,10 @@ const createAdmin = async () => {
     
     if (err.code === 11000) {
       console.error('💡 Duplicate key error - Admin with this email already exists');
+      console.error('   Try deleting the existing user first or use a different email');
     } else {
       console.error('Full error:', err);
+      console.error('Stack trace:', err.stack);
     }
   } finally {
     await mongoose.connection.close();
@@ -97,4 +118,6 @@ const createAdmin = async () => {
 };
 
 // Run the script
+console.log('🚀 Starting Admin Seed Script...');
+console.log('═══════════════════════════════════');
 createAdmin();
