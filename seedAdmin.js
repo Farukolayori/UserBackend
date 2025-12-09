@@ -4,10 +4,10 @@ const User = require('./models/User');
 require('dotenv').config();
 
 // ADMIN CREDENTIALS - Updated to match frontend
-const ADMIN_EMAIL = 'diamond@gmail.com';
-const ADMIN_PASSWORD = 'Olayori25';
-const ADMIN_FIRST_NAME = 'Pelumi';
-const ADMIN_LAST_NAME = 'Ariyo';
+const ADMIN_EMAIL = 'omowumminafisat@gmail.com';
+const ADMIN_PASSWORD = 'Ayomide887$';
+const ADMIN_FIRST_NAME = 'Nafisat';
+const ADMIN_LAST_NAME = 'Omowumi';
 
 // Connect to MongoDB
 const connectDB = async () => {
