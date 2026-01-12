@@ -11,7 +11,9 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://portal2-psi.vercel.app',  // Remove trailing slash
-  'https://portal2-psi.vercel.app/', // Keep this too
+  'https://portal2-psi.vercel.app/',
+  'https://userbackend-slns.onrender.com'
+   // Keep this too
 ];
 
 app.use(cors({
